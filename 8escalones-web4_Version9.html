@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Los 8 Escalones - Futurista AI</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.5/gsap.min.js"></script>
+  <audio id="bg-music" src="https://cdn.pixabay.com/audio/2022/10/16/audio_12be6c7a26.mp3" preload="auto" loop></audio>
+  <audio id="fx-aplausos" src="https://cdn.pixabay.com/audio/2022/07/26/audio_124bfa7555.mp3" preload="auto"></audio>
+  <audio id="fx-tick" src="https://cdn.pixabay.com/audio/2022/07/26/audio_125bfa7555.mp3" preload="auto"></audio>
+  <style>
+    :root {
+      --bg: #080d18;
+      --primary: #00eaff; --secondary: #ff00f7; --text: #e0e0e0;
+      --highlight: #fffde0;
+      --correct: #28a745; --wrong: #dc3545; --glass: rgba(20,28,40,0.4); --disabled: #65676d;
+      --facil: #00eaff; --media: #ffee00; --dificil: #ff00f7; --muyfacil: #38ffb3; --muydificil: #ff5353;
+      --shine: linear-gradient(120deg,#ffee00 0%,#00eaff 99%);
+      --glass-blur: blur(10px);
+    }
+    html,body {min-height:100vh;}
+    body {
+      font-family: 'Orbitron', sans-serif;
+      background: url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1500&q=80') center 30%/cover no-repeat fixed, 
+                  linear-gradient(150deg, #323354 30%, #1b1729 100%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    #futurista-bg {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 0; pointer-events: none;
+      background:
+        linear-gradient(120deg,rgba(12,17,36,.67) 0%,rgba(0,15,40,.84) 100%);
+      opacity: .92;
+      mix-blend-mode: multiply;
+      filter: var(--glass-blur);
+    }
+    .pantalla {
+      display: none; 
+      flex-direction: column; align-items: center; justify-content: center;
+      min-height: 95vh; 
+      z-index: 1;
+    }
+    .pantalla.activa { display: flex }
+    .inicio-glass {
+      background: rgba(32,44,68,0.89);
+      border-radius: 34px;
+      padding: 2.4rem 2.1rem 2.1rem 2.1rem;
+      box-shadow: 0 0 60px 18px #00eaff36, 0 4px 32px #0008;
+      backdrop-filter: blur(13px) brightness(1.09) saturate(1.16);
+      border: 1.7px solid rgba(255,255,255,.12);
+      max-width: 440px;
+      margin-top: 3.5vh;
+      position:relative;
+      text-align:center;
+      animation: fadeInTV 1.5s cubic-bezier(.35,1.5,.52,1) both;
+    }
+    @keyframes fadeInTV {
+      0% { opacity: 0; transform: scale(.96);}
+      100% { opacity: 1; transform: scale(1);}
+    }
+    .inicio-epic-img {
+      width: 100px; height: 100px; margin: 0 auto 1.2em auto; user-select: none;
+      border-radius: 22px; box-shadow: 0 0 44px 12px #ffee0026,0 0 22px #00eaff66 inset;
+      object-fit: cover; filter: drop-shadow(0 0 16px #ffee0066) brightness(1.08) contrast(1.11);
+      animation: epic3d 3.2s cubic-bezier(.54,.1,.42,1.4) alternate infinite;
+      display:block;
+    }
+    @keyframes epic3d {
+      0% { transform: rotateY(-9deg) scale(1);}
+      55% { transform: rotateY(11deg) scale(1.09);}
+      100% { transform: rotateY(-9deg) scale(1);}
+    }
+    .show-title {
+      font-size: 2.3rem;
+      letter-spacing: .13em;
+      color: #fff;
+      text-shadow:0 0 24px #00eaffcc,0 0 16px #ffee0033,0 2px 12px #fff;
+      margin-bottom: .36em;
+      background: linear-gradient(270deg,#ffee00 20%,#00eaff 80%);
+      background-clip: text; -webkit-background-clip: text; color: transparent; -webkit-text-fill-color: transparent;
+      line-height:1.1;
+      font-weight:800;
+    }
+    .show-subtitle {
+      color: #ffee00;
+      font-size: 1.18rem;
+      letter-spacing: .10em;
+      margin-bottom: .7em;
+      text-shadow: 0 0 14px #fffd, 0 0 6px #ffee00cc;
+    }
+    .inicio-intro {
+      color: #fffde0;
+      font-size: 1.01rem;
+      margin-bottom: 1.5em;
+      line-height:1.6;
+      text-shadow:0 0 10px #0008;
+      padding: 0 .1em;
+    }
+    .boton.boton-tv {
+      font-size: 1.15rem;
+      background: var(--shine);
+      color: #222;
+      padding: .92rem 2.5rem;
+      border-radius: 22px;
+      box-shadow: 0 0 18px #ffee00aa, 0 2px 18px #00eaff55;
+      text-shadow: 0 1px 0 #fff8, 0 0 9px #ffee0099;
+      border: 2.5px solid #fff041cc;
+      margin-top: 1.2em;
+      font-weight:bold;
+    }
+    .creditos-inicio {
+      font-size: .99em;
+      color: #fff9;
+      text-align: center;
+      text-shadow: 0 1px 6px #000b;
+      letter-spacing: .03em;
+      opacity: .85;
+      pointer-events: none;
+      font-family: 'Orbitron', sans-serif;
+      margin-top:1.4em;
+    }
+    .creditos-inicio b { color: #ffee00; font-weight: 700;}
+    #btn-music-toggle {
+      position:absolute;top:24px;right:24px;z-index:3;font-size:1.08em;
+      background:rgba(0,0,0,.19);border:none;padding:8px 16px;border-radius:14px;cursor:pointer;
+      box-shadow:0 2px 10px #0002;
+      color:#fff;
+      transition:filter .16s;
+    }
+    #btn-music-toggle:hover { filter: brightness(1.2);}
+    .equipos-glass {
+      background: rgba(32,44,68,0.93);
+      border-radius: 30px;
+      padding: 2.2rem 1.7rem 1.7rem 1.7rem;
+      box-shadow: 0 0 38px 6px #00eaff1e, 0 6px 26px #0009;
+      backdrop-filter: blur(13px) brightness(1.08) saturate(1.15);
+      border: 1.5px solid rgba(255,255,255,.10);
+      max-width: 420px;
+      margin-top:2.2vh;
+      width:98vw;
+      text-align:center;
+      animation: fadeInTV 1.1s .13s cubic-bezier(.35,1.5,.52,1) both;
+    }
+    .equipos-title {
+      font-size:1.43rem;
+      color: #ffee00;
+      text-shadow: 0 0 18px #ffee0030,0 0 2px #ffee00;
+      margin-bottom:.5em;
+      font-weight:700;
+    }
+    .equipos-indicacion {
+      font-size:1.01em;
+      margin-bottom:1.3em;
+      color:#f8f8f8;
+      opacity:.93;
+    }
+    #equipos-container {
+      display:flex;flex-direction:column;gap:1.1em;width:100%;margin-bottom:1.3em;
+    }
+    .equipo-row {
+      display:flex;align-items:center;gap:.4rem;margin-bottom:.1rem;flex-wrap:wrap;
+      background:rgba(0,234,255,.09);
+      border-radius:17px;
+      padding:.55em .5em .55em .5em;
+      box-shadow:0 2px 12px #00eaff11;
+    }
+    .equipo-input {
+      flex:1;
+      padding:.44rem .72rem;
+      border-radius:9px;
+      border:2px solid var(--primary);
+      font-size:1.08rem;
+      margin-right:.19rem;
+      background:var(--glass);
+      color:var(--text);
+      outline:none;
+      font-family:inherit;
+      font-weight:600;
+      box-shadow:0 0 7px #ffee0050 inset;
+      transition:border .12s, box-shadow .14s;
+    }
+    .equipo-input:focus {border:2px solid #ffee00; box-shadow:0 2px 11px #ffee0055;}
+    .picker-container{
+      display:flex;flex-wrap:wrap;gap:.11rem;max-width:140px;margin:0 0.3em 0 0;
+      overflow-x:auto;
+      background:none;
+      border-radius:8px;
+    }
+    .avatar-picker {
+      margin:0 .07rem;
+      cursor:pointer;
+      font-size:1.23rem;
+      filter:grayscale(.2) brightness(1.13) drop-shadow(0 2px 4px var(--primary));
+      transition:transform .12s,filter .13s,border .14s;
+      border-radius:50%;
+      padding:2px 2px 0;
+      background:rgba(255,255,255,.10);
+      border:2px solid transparent;
+    }
+    .avatar-picker.selected,
+    .avatar-picker:hover {
+      transform:scale(1.14);
+      filter:brightness(1.7) drop-shadow(0 0 9px var(--secondary));
+      border:2px solid #ffee00;
+      background:rgba(255,255,255,.13);
+    }
+    .remove-btn {
+      background:none;
+      border:none;
+      color:var(--secondary);
+      font-size:1.18rem;
+      cursor:pointer;
+      filter:drop-shadow(0 0 4px var(--secondary));
+      transition:color .12s;
+      border-radius:7px;
+      padding:3px 9px;
+    }
+    .remove-btn:hover{color:var(--wrong);background:rgba(255,0,50,0.11);}
+    .equipos-btns {
+      display:flex;flex-direction:column;align-items:center;gap:.6em;margin-top:.5em;
+    }
+    .equipos-btns .boton {
+      min-width: 220px;
+      box-shadow:0 0 13px #ffee0045;
+      margin:0.2em 0;
+      font-size:1.08em;
+    }
+
+    /* --- OPCIONES DE RESPUESTA ESTILO CLÁSICO --- */
+    .opciones {
+      display: flex; flex-direction: column; gap: 1.1rem; max-width: 540px; width:100%; margin-bottom: 1.2rem; padding-bottom: 1rem;
+    }
+    .opcion {
+      background: linear-gradient(100deg,rgba(20,28,40,.93) 48%,rgba(0,234,255,.11) 100%);
+      color: var(--text); padding:.84rem; border-radius:10px; text-align:center; user-select:none; font-size:1rem; line-height:1.37;
+      border:2.5px solid var(--primary); box-shadow:0 2px 9px rgba(0,234,255,.13) inset,0 2px 6px rgba(255,0,247,.04);
+      width:82%; margin:0 auto; display:flex;align-items:center;justify-content:center;gap:10px;
+      transition:box-shadow .17s,background .19s, color .14s;
+      cursor:pointer;
+    }
+    .opcion:hover {
+      background: linear-gradient(120deg,#21e5ff55 0%,#ff00f766 100%);
+      color:#fff;
+      box-shadow:0 8px 24px #00eaff44, 0 2.5px 12px #ff00f799;
+    }
+    .correcto { background: var(--correct) !important; color: #fff !important; box-shadow: 0 0 14px var(--correct) !important; filter: brightness(1.14) }
+    .wrong { background: var(--wrong) !important; color: #fff !important; animation: shake .34s ease; filter: brightness(1.09) }
+    .mostrar-correcta { border: 2.5px solid var(--correct) !important; background: linear-gradient(90deg,rgba(40,88,40,.12) 80%,rgba(0,234,255,.13) 100%) !important;}
+    .tilde-correcta { font-size: 1.3em; color: var(--correct); margin-left: 10px; font-weight: bold; filter: drop-shadow(0 0 6px #fff9); animation: poptilde .4s cubic-bezier(.18,1.4,.6,.96);}
+    @keyframes poptilde {0%{transform:scale(.3) rotate(-25deg)}70%{transform:scale(1.35)}100%{transform:scale(1)}}
+    @keyframes shake {0%{transform:translateX(0)}22%{transform:translateX(-7px)}52%{transform:translateX(9px)}84%{transform:translateX(-6px)}100%{transform:translateX(0)}}
+
+    /* ...resto igual... */
+  </style>
+</head>
+<body>
+  <div id="futurista-bg"></div>
+  <div id="error-flash"></div>
+  <!-- Pantalla de Inicio Mejorada -->
+  <div id="pantalla-inicio" class="pantalla activa">
+    <div class="inicio-glass">
+      <img class="inicio-epic-img" src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80" alt="Escalera épica del show" />
+      <div class="show-title">¡Los 8 Escalones AI!</div>
+      <div class="show-subtitle">El desafío interactivo más futurista en vivo</div>
+      <div class="inicio-intro">
+        <b>¿Listos para escalar juntos?</b><br>
+        Formá equipos, respondé preguntas de cultura y actualidad, subí escalones y convertite en el campeón del show.<br>
+        <span style="color:#ffee00;font-size:1.12em;">¿Quién coronará la cima hoy?</span>
+      </div>
+      <button class="boton boton-tv" id="btn-start" onclick="startShow()">🎬 ¡Empezar el Show!</button>
+      <div class="creditos-inicio">Producido por <b>Futurista AI</b> · Hecho con 💙 por <b>deepbx</b></div>
+      <button id="btn-music-toggle" style="position:absolute;top:24px;right:24px;z-index:3;font-size:1.08em;">🔊</button>
+    </div>
+  </div>
+  <!-- Pantalla de Armado de Equipos Mejorada -->
+  <div id="pantalla-config" class="pantalla">
+    <div class="equipos-glass">
+      <div class="equipos-title">Configurá tus Equipos</div>
+      <div class="equipos-indicacion">Elegí el nombre y avatar para cada equipo.<br>¡Pueden jugar entre 2 y 6 equipos!</div>
+      <div id="equipos-container"></div>
+      <div class="equipos-btns">
+        <button class="boton" onclick="agregarEquipo()">➕ Agregar Equipo</button>
+        <button class="boton" onclick="iniciarJuego()">🚀 Iniciar Juego</button>
+      </div>
+    </div>
+  </div>
+  <div id="pantalla-juego" class="pantalla">
+    <div id="puntajes"></div>
+    <h2 id="turno-actual"></h2>
+    <div id="botones-juego">
+      <button class="boton" id="btn-pausar" onclick="toggleTimer()">⏸️ Frenar Tiempo</button>
+      <button class="boton" id="btn-cambio" onclick="cambioPregunta()">🔄 Cambio de Pregunta</button>
+    </div>
+    <div id="pregunta" style="font-size:1.11rem;margin:1.2rem 0 0.5rem;"></div>
+    <div id="opciones" class="opciones"></div>
+    <div id="barra-temporizador"><div id="barra-inner"></div></div>
+    <div id="temporizador" style="margin-top:8px;font-size:0.99rem;"></div>
+    <div id="dificultad-3d"></div>
+    <div class="creditos-inicio" style="font-size:0.82em;opacity:.6;bottom:2px;">¡Suerte a todos los equipos!</div>
+  </div>
+  <div id="pantalla-final" class="pantalla">
+    <div class="trophy">🏆</div>
+    <h1 id="mensaje-final"></h1>
+    <div class="final-btns-wrap">
+      <button class="boton boton-final" onclick="reiniciarJuegoMismosEquipos()">🔁 Volver a jugar con los mismos equipos</button>
+      <button class="boton boton-final" onclick="reiniciarJuego()">🆕 Crear partida nueva</button>
+    </div>
+    <div class="creditos-inicio" style="font-size:0.84em;opacity:.7;bottom:12px;">Gracias por jugar en Futurista AI</div>
+  </div>
+  <script>
+    // ...el mismo JavaScript del ciclo de juego, inicialización y sonidos...
+    const $ = id => document.getElementById(id);
+    const confetti = window.confetti;
+    const avatarEmojis = ["🐶","🐱","🦊","🐼","🐸","🦁","🐵","🐯","🦄","🐲","🐙","🦖"];
+    let equipos = [], equiposGuardados = [], turno = 0, timer, tiempo = 40, indicePregunta = 0, timerPaused = false, cambioPermitido = true;
+    let tiempoMax = 40;
+    const preguntas = [
+      {tema:"Actualidad y Noticias",texto:"¿Qué actriz ganó el Oscar a Mejor Actriz 2022?",opciones:["Penélope Cruz","Jessica Chastain","Kristen Stewart","Nicole Kidman"],correcta:1,dificultad:"Difícil"},
+      {tema:"Actualidad y Noticias",texto:"¿Qué actriz protagonizó 'El juego del calamar'?",opciones:["HoYeon Jung","Park So-dam","Kim Go-eun","Song Hye-kyo"],correcta:0,dificultad:"Fácil"},
+      {tema:"Actualidad y Noticias",texto:"¿Qué animal fue declarado monumento natural en Argentina en 2021?",opciones:["Cóndor","Ballena franca austral","Puma","Yaguareté"],correcta:3,dificultad:"Difícil"},
+      {tema:"Actualidad y Noticias",texto:"¿Qué año murió Diego Maradona?",opciones:["2018","2020","2019","2022"],correcta:1,dificultad:"Media"},
+      {tema:"Actualidad y Noticias",texto:"¿Qué aplicación fue tendencia en 2020 por sus bailes virales?",opciones:["TikTok","Instagram","Snapchat","Facebook"],correcta:0,dificultad:"Media"},
+      {tema:"Actualidad y Noticias",texto:"¿Qué argentino ganó la Copa América 2021 como DT?",opciones:["Menotti","Bielsa","Scaloni","Sampaoli"],correcta:2,dificultad:"Difícil"},
+      {tema:"Viajes y Lugares Increíbles",texto:"¿Qué país tiene la región de Transilvania?",opciones:["Hungría","Rumania","Serbia","Bulgaria"],correcta:1,dificultad:"Desafío final"},
+      {tema:"Cultura Pop",texto:"¿Qué serie de TV popular tiene un trono hecho de espadas?",opciones:["Breaking Bad","Game of Thrones","Vikings","The Witcher"],correcta:1,dificultad:"Fácil"},
+      {tema:"Cultura Pop",texto:"¿Quién es el conductor histórico de '¿Quién quiere ser millonario?' en Argentina?",opciones:["Guido Kaczka","Santiago del Moro","Guillermo Andino","Julián Weich"],correcta:1,dificultad:"Media"},
+      {tema:"Música",texto:"¿Qué banda compuso la canción 'Bohemian Rhapsody'?",opciones:["The Beatles","Queen","Pink Floyd","Led Zeppelin"],correcta:1,dificultad:"Fácil"},
+      {tema:"Deportes",texto:"¿En qué deporte se usa la palabra 'match point'?",opciones:["Tenis","Fútbol","Hockey","Golf"],correcta:0,dificultad:"Muy fácil"}
+    ];
+    function playFuturista(tone='ok') {
+      try {
+        const ctx = window.AudioContext ? new AudioContext() : new webkitAudioContext();
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = tone === 'win' ? 'triangle' : (tone === 'error' ? 'sawtooth' : 'square');
+        const cfg = { ok: [890, .22], error: [140, .23], win: [670, .6] };
+        const [freq, dur] = cfg[tone];
+        o.frequency.setValueAtTime(freq, ctx.currentTime); g.gain.value = .10;
+        o.connect(g).connect(ctx.destination); o.start();
+        g.gain.linearRampToValueAtTime(0, ctx.currentTime + dur);
+        o.stop(ctx.currentTime + dur); setTimeout(() => ctx.close(), 350);
+      } catch (e) {}
+    }
+    const obtenerDificultadPorEscalon = puntos => {
+      if (puntos <= 1) return "Muy fácil";
+      if (puntos <= 3) return "Fácil";
+      if (puntos === 4) return "Media";
+      if (puntos === 5) return "Difícil";
+      if (puntos === 6) return "Muy difícil";
+      return "Desafío final";
+    };
+    const encontrarPreguntaPorDificultad = dif => {
+      const lista = preguntas.filter(p => p.dificultad.toLowerCase() === dif.toLowerCase());
+      if (lista.length) return preguntas.indexOf(lista[Math.floor(Math.random() * lista.length)]);
+      return Math.floor(Math.random() * preguntas.length);
+    };
+    function startSetup() {
+      show('pantalla-config');
+      stopMusic();
+      if (equipos.length === 0) { agregarEquipo(); agregarEquipo(); }
+    }
+    function agregarEquipo() {
+      if (equipos.length >= 6) return;
+      const cont = $('equipos-container');
+      const d = document.createElement('div'); d.className = 'equipo-row';
+      let avatarHTML = avatarEmojis.map(e => `<span class="avatar-picker" data-emoji="${e}" title="Elegir avatar">${e}</span>`).join('');
+      d.innerHTML = `
+        <input type="text" class="equipo-input" value="Equipo ${cont.children.length+1}" required>
+        <span style="margin-right:4px;font-size:1rem;color:var(--primary);">Avatar:</span>
+        <span class="picker-container">${avatarHTML}</span>
+        <button class="remove-btn" title="Eliminar equipo">❌</button>`;
+      cont.appendChild(d);
+      d.querySelectorAll('.avatar-picker').forEach(pick => {
+        pick.onclick = () => {
+          d.querySelectorAll('.avatar-picker').forEach(x => x.classList.remove('selected'));
+          pick.classList.add('selected');
+        };
+      });
+      d.querySelector('.remove-btn').onclick = () => { d.remove(); actualizarEquipos(); };
+      d.querySelector('.equipo-input').oninput = actualizarEquipos;
+      actualizarEquipos();
+      gsap.from(d, { duration: .48, x: 50, opacity: 0, ease: 'power2.out' });
+    }
+    function actualizarEquipos() {
+      equipos = [...$('equipos-container').children].map(d => {
+        const sel = d.querySelector('.avatar-picker.selected');
+        return {
+          nombre: d.querySelector('.equipo-input').value.trim(),
+          escalon: 0, aciertos: 0, intentos: 0,
+          avatar: sel ? sel.textContent : avatarEmojis[0]
+        };
+      });
+    }
+    function iniciarJuego() {
+      actualizarEquipos();
+      if (equipos.length < 2 || equipos.some(e => !e.nombre)) {
+        alert('Poné al menos 2 equipos y completá los nombres.');
+        return;
+      }
+      equiposGuardados = equipos.map(e => ({...e}));
+      shuffle(preguntas); indicePregunta = 0;
+      show('pantalla-juego'); turno = 0;
+      setTimeout(nuevoTurno, 400);
+    }
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+    }
+    function actualizarPuntajes() {
+      $('puntajes').innerHTML = equipos.map(e =>
+        `<span class="avatar">${e.avatar}</span><b>${e.nombre}</b>: <span style="font-size:1.18em">${e.escalon}</span>`
+      ).join(' ');
+    }
+    function calcularTiempo() { return 40; }
+    function nuevoTurno() {
+      actualizarPuntajes();
+      const eq = equipos[turno];
+      $('turno-actual').innerHTML = `<span class="avatar-current">${eq.avatar}</span>Turno de <b>${eq.nombre}</b>`;
+      gsap.from(document.querySelector('.avatar-current'), { duration: .56, scale: 1.32, ease: 'elastic.out(1,0.5)' });
+      const difNecesaria = obtenerDificultadPorEscalon(eq.escalon);
+      indicePregunta = encontrarPreguntaPorDificultad(difNecesaria);
+      mostrarPregunta(); resetTimer();
+      cambioPermitido = true; $('btn-cambio').disabled = false;
+    }
+    function renderDificultad3D(dif) {
+      const div = $('dificultad-3d'); if (!dif) { div.innerHTML = ""; return; }
+      let clase = "difi-cubo", label = dif.toUpperCase();
+      switch (dif.toLowerCase()) {
+        case "muy fácil": clase += " difi-muyfacil"; label = "MUY FÁCIL"; break;
+        case "fácil": clase += " difi-facil"; label = "FÁCIL"; break;
+        case "media": clase += " difi-media"; label = "MEDIA"; break;
+        case "difícil": clase += " difi-dificil"; label = "DIFÍCIL"; break;
+        case "muy difícil": clase += " difi-muydificil"; label = "MUY DIFÍCIL"; break;
+      }
+      div.innerHTML = `
+        <div class="difi-3d-wrap">
+          <div class="${clase}" title="Nivel de dificultad"></div>
+          <span id="difi-label">Nivel de dificultad:
+            <span style="font-weight:900;letter-spacing:.04em;">${label}</span>
+          </span>
+        </div>`;
+    }
+    function mostrarPregunta() {
+      const p = preguntas[indicePregunta];
+      $('pregunta').innerHTML = `<span>${p.texto}</span>`;
+      const cont = $('opciones'); cont.innerHTML = "";
+      p.opciones.forEach((opc, i) => {
+        const div = document.createElement('div');
+        div.className = 'opcion'; div.textContent = opc; div.dataset.idx = i;
+        div.onclick = () => seleccionarRespuesta(div, i === p.correcta, p.correcta);
+        cont.appendChild(div);
+      });
+      gsap.from('.opcion', { duration: .62, y: 24, opacity: 0, stagger: .11, ease: 'power2.out' });
+      renderDificultad3D(p.dificultad);
+    }
+    function resetTimer() {
+      tiempo = calcularTiempo(); $('temporizador').textContent = tiempo; $('barra-inner').style.width = '100%';
+      clearInterval(timer); timerPaused = false; $('btn-pausar').textContent = "⏸️ Frenar Tiempo";
+      timer = setInterval(() => {
+        if (!timerPaused) {
+          tiempo--;
+          $('temporizador').textContent = tiempo;
+          $('barra-inner').style.width = (tiempo / calcularTiempo() * 100) + '%';
+          if(tiempo <= 6 && tiempo > 0) sonidoTick();
+          if (tiempo <= 0) { clearInterval(timer); seleccionarRespuesta(null, false, preguntas[indicePregunta].correcta); }
+        }
+      }, 1000);
+    }
+    function toggleTimer() {
+      timerPaused = !timerPaused;
+      $('btn-pausar').textContent = timerPaused ? "▶️ Reanudar Tiempo" : "⏸️ Frenar Tiempo";
+    }
+    function cambioPregunta() {
+      if (!cambioPermitido) return; cambioPermitido = false; $('btn-cambio').disabled = true;
+      let nueva, tries = 0;
+      do { nueva = Math.floor(Math.random() * preguntas.length); tries++ }
+      while (nueva === indicePregunta && preguntas.length > 1 && tries < 10);
+      indicePregunta = nueva; mostrarPregunta(); resetTimer();
+    }
+    function seleccionarRespuesta(btn, correcta, idxCorrecta) {
+      clearInterval(timer);
+      document.querySelectorAll('.opcion').forEach(o => o.style.pointerEvents = 'none');
+      const eq = equipos[turno]; eq.intentos++;
+      if (btn) {
+        btn.classList.add(correcta ? 'correcto' : 'wrong');
+        gsap.fromTo(btn, { scale: .89 }, { duration: .38, scale: 1.17, ease: 'elastic.out(1,0.4)' });
+      }
+      if (correcta) {
+        confetti({ spread: 70, origin: { y: .6 } }); playFuturista('ok'); eq.escalon++; eq.aciertos++; animarEscalon(eq);
+      } else {
+        $('error-flash').style.opacity = '.42'; setTimeout(() => $('error-flash').style.opacity = '0', 220); playFuturista('error');
+        document.querySelectorAll('.opcion').forEach((o, i) => {
+          if (i == idxCorrecta) {
+            o.classList.add('mostrar-correcta');
+            const tilde = document.createElement('span'); tilde.className = 'tilde-correcta'; tilde.innerHTML = '✅'; o.appendChild(tilde);
+          }
+        });
+      }
+      setTimeout(resolver, 900);
+    }
+    function animarEscalon(eq) {
+      const nodes = $('puntajes').children;
+      if (nodes && nodes[turno])
+        gsap.fromTo(nodes[turno], { scale: 1.05, filter: "brightness(2.2)" }, { scale: 1, filter: "brightness(1)", duration: .68, ease: "elastic.out(1,0.45)" });
+    }
+    function mensajeGanadorAleatorio(nombre){
+      const frases = [
+        `¡${nombre} es el nuevo campeón!`,
+        `¡Increíble, ${nombre} subió todos los escalones!`,
+        `¡Bravo ${nombre}, ganaste el show!`,
+        `¡${nombre} demostró que sabe muchísimo!`
+      ];
+      return frases[Math.floor(Math.random()*frases.length)];
+    }
+    resolver = function() {
+      const eq = equipos[turno];
+      if (eq.escalon >= 8) {
+        $('mensaje-final').textContent = mensajeGanadorAleatorio(eq.nombre);
+        show('pantalla-final');
+        playFuturista('win');
+        sonidoAplausos();
+        confetti({ spread: 140, particleCount: 250 });
+        gsap.from('#pantalla-final .trophy', { duration: 1.19, scale: 0, ease: 'elastic.out(1,0.5)' });
+        return;
+      }
+      turno = (turno + 1) % equipos.length;
+      indicePregunta = (indicePregunta + 1) % preguntas.length;
+      setTimeout(nuevoTurno, 340);
+    }
+    function reiniciarJuego() { location.reload(); }
+    function reiniciarJuegoMismosEquipos() {
+      if (!equiposGuardados.length) { reiniciarJuego(); return; }
+      equipos = equiposGuardados.map(e => ({ ...e, escalon:0, aciertos:0, intentos:0 }));
+      turno = 0;
+      indicePregunta = 0;
+      shuffle(preguntas);
+      show('pantalla-juego');
+      setTimeout(nuevoTurno, 400);
+    }
+    function show(id) {
+      document.querySelectorAll('.pantalla').forEach(p => p.classList.remove('activa'));
+      $(id).classList.add('activa');
+      gsap.from($(id), { duration: .7, scale: .82, opacity: 0, ease: "back.out(1.5)" });
+    }
+    let musicOn = false;
+    function playMusic() {
+      try {
+        const audio = $("bg-music");
+        audio.volume = 0.37;
+        audio.play();
+        musicOn = true;
+        $("btn-music-toggle").innerText = "🔊";
+      } catch(e) {}
+    }
+    function stopMusic() {
+      try {
+        const audio = $("bg-music");
+        audio.pause();
+        audio.currentTime = 0;
+        musicOn = false;
+        $("btn-music-toggle").innerText = "🔈";
+      } catch(e) {}
+    }
+    function toggleMusic() {
+      if(musicOn) stopMusic(); else playMusic();
+    }
+    $("btn-music-toggle").onclick = toggleMusic;
+    function startShow() {
+      playMusic();
+      startSetup();
+    }
+    setInterval(() => {
+      // solo para la pantalla de inicio
+      if(document.querySelector('#pantalla-inicio').classList.contains('activa')) {
+        const glass = document.querySelector('.inicio-glass');
+        if(glass) glass.style.boxShadow = `0 0 60px 18px #00eaff${Math.floor(26+Math.random()*10).toString(16)}, 0 4px 32px #0008`;
+      }
+    }, 1200);
+    function sonidoAplausos(){
+      try{
+        const apl = $("fx-aplausos");
+        apl.currentTime = 0;
+        apl.volume = 0.7;
+        apl.play();
+      }catch(e){}
+    }
+    function sonidoTick(){
+      try{
+        const tick = $("fx-tick");
+        tick.currentTime = 0.15;
+        tick.volume = 0.27;
+        tick.play();
+      }catch(e){}
+    }
+  </script>
+</body>
+</html>
